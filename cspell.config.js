@@ -11,6 +11,8 @@ module.exports = {
     'jscoverage',
     'toastify',
     'tailwindcss',
+    // projects
+    'BTCUSDT',
   ],
   flagWords: [],
   ignoreWords: [],
