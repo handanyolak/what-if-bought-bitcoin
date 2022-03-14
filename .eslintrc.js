@@ -1,22 +1,50 @@
 module.exports = {
   root: true,
+
   env: {
     browser: true,
     node: true,
   },
-  parserOptions: {
-    parser: '@babel/eslint-parser',
-    requireConfigFile: false,
-  },
-  extends: ['@nuxtjs', 'plugin:nuxt/recommended', 'prettier'],
-  plugins: [],
-  // add your custom rules here
+
+  extends: [
+    'eslint:recommended',
+    'plugin:json/recommended',
+    'plugin:nuxt/recommended',
+    '@nuxtjs',
+    'plugin:vue/vue3-recommended',
+    'prettier',
+  ],
+
+  plugins: ['json', 'prettier', 'nuxt'],
+
   rules: {
-    'vue/multi-word-component-names': [
-      'error',
+    'prettier/prettier': 'warn',
+    'sort-imports': [
+      'warn',
       {
-        ignores: ['default'],
+        ignoreDeclarationSort: true,
       },
     ],
+    'vue/attributes-order': [
+      'warn',
+      {
+        order: [
+          'DEFINITION',
+          'LIST_RENDERING',
+          'CONDITIONALS',
+          'RENDER_MODIFIERS',
+          'GLOBAL',
+          ['UNIQUE', 'SLOT'],
+          'TWO_WAY_BINDING',
+          'OTHER_DIRECTIVES',
+          'OTHER_ATTR',
+          'EVENTS',
+          'CONTENT',
+        ],
+        alphabetical: true,
+      },
+    ],
+    'vue/multi-word-component-names': 'off',
+    'vue/no-template-shadow': 'off',
   },
 }
