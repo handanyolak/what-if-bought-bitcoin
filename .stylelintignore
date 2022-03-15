@@ -18,7 +18,7 @@ pids
 .eslintcache
 
 # Git
-.git/
+.git
 
 # Docker
 Dockerfile
@@ -45,8 +45,8 @@ bower_components
 build/Release
 
 # Dependency directories
-node_modules/
-jspm_packages/
+node_modules
+jspm_packages
 
 # TypeScript v1 declaration files
 typings
@@ -105,6 +105,3 @@ sw.*
 
 # Vim swap files
 *.swp
-
-# Husky default generated files
-.husky

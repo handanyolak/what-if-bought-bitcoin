@@ -2,9 +2,9 @@
   <div class="items-center justify-center min-h-screen">
     <div class="flex justify-between p-5">
       <img
+        alt="what if bought bitcoin"
         class="p-10"
         src="../assets/images/logo.svg"
-        alt="what if bought bitcoin"
       />
       <button
         class="relative flex justify-center w-64 h-10 m-5 text-xl font-bold text-center rounded-md cursor-pointer button"
@@ -13,14 +13,14 @@
       </button>
     </div>
     <div class="flex items-center justify-center">
-      <div class="w-full p-4 mx-5 md:mx-20 glass max-w-screen-2xl">
+      <div class="w-full p-4 mx-5 glass max-w-screen-2xl md:mx-20">
         <div class="flex flex-col items-center px-20 py-10 space-y-5">
           <v-date-picker
             v-model="startTime"
-            :min="minDate"
+            class="border-none w-80 rounded-xl"
             full-width
             :max="maxDate"
-            class="border-none w-80 rounded-xl"
+            :min="minDate"
           ></v-date-picker>
           <v-text-field
             v-model="amount"
@@ -29,13 +29,13 @@
           ></v-text-field>
           <v-checkbox
             v-model="inflation"
-            dense
-            label="Inflation?"
             color="cyan accent-4"
+            dense
             hide-details
+            label="Inflation?"
           ></v-checkbox>
           <button
-            class="py-1 mt-10 outline-none cursor-pointer px-28 rounded-xl try-button"
+            class="py-1 mt-10 outline-none cursor-pointer try-button rounded-xl px-28"
             @click="onSubmit"
           >
             Try
@@ -57,115 +57,115 @@
 </template>
 
 <script setup>
-/* eslint-disable */
-import { ref, useContext } from '@nuxtjs/composition-api'
-import { mdiHeart } from '@mdi/js'
+  /* eslint-disable */
+  import { ref, useContext } from '@nuxtjs/composition-api'
+  import { mdiHeart } from '@mdi/js'
 
-// context
-const { $axios } = useContext()
+  // context
+  const { $axios } = useContext()
 
-// const
-const startTime = ref(null)
-const maxDate = new Date().toISOString().split('T')[0]
-const minDate = '2017-08-18'
-const binanceUrl = 'https://api.binance.com/api/v3'
-const inflationUrl = 'https://www.statbureau.org'
-const pair = 'BTCUSDT'
-const oldPrice = ref(null)
-const currentPrice = ref(null)
-const inflation = ref(false)
-const inflationRate = ref(null)
-const amount = ref('')
-const currentAmount = ref('')
-const profit = ref(null)
+  // const
+  const startTime = ref(null)
+  const maxDate = new Date().toISOString().split('T')[0]
+  const minDate = '2017-08-18'
+  const binanceUrl = 'https://api.binance.com/api/v3'
+  const inflationUrl = 'https://www.statbureau.org'
+  const pair = 'BTCUSDT'
+  const oldPrice = ref(null)
+  const currentPrice = ref(null)
+  const inflation = ref(false)
+  const inflationRate = ref(null)
+  const amount = ref('')
+  const currentAmount = ref('')
+  const profit = ref(null)
 
-// methods
-const onSubmit = async () => {
-  await getOldPrice()
-  await getCurrentPrice()
-  if (inflation.value) {
-    await calculateInflation()
+  // methods
+  const onSubmit = async () => {
+    await getOldPrice()
+    await getCurrentPrice()
+    if (inflation.value) {
+      await calculateInflation()
+    }
+    await calculateProfit()
+
+    /* if (checked.value) {} */
   }
-  await calculateProfit()
 
-  /* if (checked.value) {} */
-}
+  const getOldPrice = async () => {
+    console.log(startTime.value)
+    await $axios
+      .$get(`${binanceUrl}/aggTrades`, {
+        params: {
+          symbol: pair,
+          startTime: getStartTime(startTime.value),
+          endTime: getEndTime(startTime.value),
+        },
+      })
+      .then((data) => {
+        // TODO: order by timestamp
+        // m = is buyer? M = is best price? and get first item's price
+        oldPrice.value = data.filter(
+          (item) => item.m === true && item.M === true
+        )[0].p
+        console.log(oldPrice.value)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
 
-const getOldPrice = async () => {
-  console.log(startTime.value)
-  await $axios
-    .$get(`${binanceUrl}/aggTrades`, {
-      params: {
-        symbol: pair,
-        startTime: getStartTime(startTime.value),
-        endTime: getEndTime(startTime.value),
-      },
-    })
-    .then((data) => {
-      // TODO: burayi timestamp'e gore sirala
-      // m = is buyer? M = is best price? and get first item's price
-      oldPrice.value = data.filter(
-        (item) => item.m === true && item.M === true
-      )[0].p
-      console.log(oldPrice.value)
-    })
-    .catch((error) => {
-      console.log(error)
-    })
-}
+  const getCurrentPrice = async () => {
+    await $axios
+      .$get(`${binanceUrl}/avgPrice`, {
+        params: {
+          symbol: pair,
+        },
+      })
+      .then((data) => {
+        // get current price
+        currentPrice.value = data.price
+        console.log(currentPrice.value)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
 
-const getCurrentPrice = async () => {
-  await $axios
-    .$get(`${binanceUrl}/avgPrice`, {
-      params: {
-        symbol: pair,
-      },
-    })
-    .then((data) => {
-      // get current price
-      currentPrice.value = data.price
-      console.log(currentPrice.value)
-    })
-    .catch((error) => {
-      console.log(error)
-    })
-}
+  const calculateInflation = async () => {
+    await $axios
+      .$get(`${inflationUrl}/calculate-inflation-price-jsonp`, {
+        params: {
+          country: 'united-states',
+          start: startTime.value,
+          end: maxDate,
+          amount: 100, // hard coded
+          format: false,
+        },
+      })
+      .then((data) => {
+        // calculate inflation rate
+        inflationRate.value =
+          100 / +data.substring(0, data.length - 2).substring(2)
+        // reduced amount by inflation rate
+        amount.value = amount.value * inflationRate.value
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  }
 
-const calculateInflation = async () => {
-  await $axios
-    .$get(`${inflationUrl}/calculate-inflation-price-jsonp`, {
-      params: {
-        country: 'united-states',
-        start: startTime.value,
-        end: maxDate,
-        amount: 100, // hard coded
-        format: false,
-      },
-    })
-    .then((data) => {
-      // calculate inflation rate
-      inflationRate.value =
-        100 / +data.substring(0, data.length - 2).substring(2)
-      // reduced amount by inflation rate
-      amount.value = amount.value * inflationRate.value
-    })
-    .catch((error) => {
-      console.log(error)
-    })
-}
+  const calculateProfit = () => {
+    profit.value = (currentPrice.value / oldPrice.value) * 100
+    currentAmount.value = (amount.value * profit.value) / 100
+  }
 
-const calculateProfit = () => {
-  profit.value = (currentPrice.value / oldPrice.value) * 100
-  currentAmount.value = (amount.value * profit.value) / 100
-}
+  const getStartTime = (date) => {
+    return Date.parse(date)
+  }
 
-const getStartTime = (date) => {
-  return Date.parse(date)
-}
-
-const getEndTime = (date) => {
-  return Date.parse(date) + 1000 * 60 * 5 // add 1 min
-}
+  const getEndTime = (date) => {
+    return Date.parse(date) + 1000 * 60 * 5 // add 1 min
+  }
 </script>
 
 <style>
