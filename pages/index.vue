@@ -1,11 +1,16 @@
 <template>
   <div class="items-center justify-center min-h-screen">
-    <div>
+    <div class="flex justify-between p-5">
       <img
         class="p-10"
         src="../assets/images/logo.svg"
         alt="what if bought bitcoin"
       />
+      <button
+        class="relative flex justify-center w-64 h-10 m-5 text-xl font-bold text-center rounded-md cursor-pointer button"
+      >
+        Coffee With Crypto
+      </button>
     </div>
     <div class="flex items-center justify-center">
       <div class="w-full p-4 mx-5 md:mx-20 glass max-w-screen-2xl">
@@ -203,5 +208,65 @@ const getEndTime = (date) => {
 
 .theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
   border-color: #f13d7d !important;
+}
+
+@property --rotate {
+  syntax: '<angle>';
+  initial-value: 132deg;
+  inherits: false;
+}
+
+.button:hover {
+  color: #f13d7d;
+  transition: color 1s;
+}
+.button:hover:before,
+.button:hover:after {
+  animation: none;
+  opacity: 0;
+}
+
+.button::before {
+  content: '';
+  width: 100%;
+  height: 8%;
+  border-radius: 8px;
+  background-image: linear-gradient(
+    var(--rotate),
+    #da12cc,
+    #f13d7d 43%,
+    #eed11d
+  );
+  position: absolute;
+  bottom: 0;
+  animation: spin 2.5s linear infinite;
+}
+
+.button::after {
+  position: absolute;
+  content: '';
+  left: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  transform: scale(0.8);
+  filter: blur(calc(250px / 6));
+  background-image: linear-gradient(
+    var(--rotate),
+    #da12cc,
+    #f13d7d 43%,
+    #eed11d
+  );
+  transition: opacity 0.5s;
+  animation: spin 2.5s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    --rotate: 0deg;
+  }
+  100% {
+    --rotate: 360deg;
+  }
 }
 </style>
