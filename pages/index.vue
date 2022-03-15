@@ -1,18 +1,23 @@
 <template>
-  <div class="min-h-screen items-center justify-center">
-    <div>
+  <div class="items-center justify-center min-h-screen">
+    <div class="flex justify-between p-5">
       <img
         alt="what if bought bitcoin"
         class="p-10"
         src="../assets/images/logo.svg"
       />
+      <button
+        class="relative flex justify-center w-64 h-10 m-5 text-xl font-bold text-center rounded-md cursor-pointer button"
+      >
+        Coffee With Crypto
+      </button>
     </div>
     <div class="flex items-center justify-center">
-      <div class="glass mx-5 w-full max-w-screen-2xl p-4 md:mx-20">
-        <div class="flex flex-col items-center space-y-5 px-20 py-10">
+      <div class="w-full p-4 mx-5 glass max-w-screen-2xl md:mx-20">
+        <div class="flex flex-col items-center px-20 py-10 space-y-5">
           <v-date-picker
             v-model="startTime"
-            class="w-80 rounded-xl border-none"
+            class="border-none w-80 rounded-xl"
             full-width
             :max="maxDate"
             :min="minDate"
@@ -30,12 +35,12 @@
             label="Inflation?"
           ></v-checkbox>
           <button
-            class="try-button mt-10 cursor-pointer rounded-xl py-1 px-28 outline-none"
+            class="py-1 mt-10 outline-none cursor-pointer try-button rounded-xl px-28"
             @click="onSubmit"
           >
             Try
           </button>
-          <div class="grid grid-cols-2 justify-center justify-items-center">
+          <div class="grid justify-center grid-cols-2 justify-items-center">
             <div v-if="profit" class="text-2xl">
               <label class="font-semibold">Profit: </label>
               <span class="font-semibold">%{{ profit }}</span>
@@ -164,44 +169,104 @@
 </script>
 
 <style>
-  .glass {
-    padding: 10px;
-    border-radius: 20px;
-    color: #fff;
-    font-size: 18px;
-    background: rgba(47, 103, 191, 0.14);
-    box-shadow: 0px 2px 20px 8px rgb(255 255 255 / 10%);
-    border-right: 1px solid rgba(47, 103, 191, 0.14);
-    border-bottom: 1px solid rgba(47, 103, 191, 0.14);
-    backdrop-filter: blur(10px);
-    transition: 0.5s ease;
-  }
-  .try-button {
-    transition: 0.3s ease;
-    border: 2px solid #f13d7d;
-  }
-  .try-button:hover {
-    box-shadow: 0px 0px 8px 0px rgb(241 61 125 / 88%);
-  }
+.glass {
+  padding: 10px;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 18px;
+  background: rgba(47, 103, 191, 0.14);
+  box-shadow: 0px 2px 20px 8px rgb(255 255 255 / 10%);
+  border-right: 1px solid rgba(47, 103, 191, 0.14);
+  border-bottom: 1px solid rgba(47, 103, 191, 0.14);
+  backdrop-filter: blur(10px);
+  transition: 0.5s ease;
+}
+.try-button {
+  transition: 0.3s ease;
+  border: 2px solid #f13d7d;
+}
+.try-button:hover {
+  box-shadow: 0px 0px 8px 0px rgb(241 61 125 / 88%);
+}
 
-  /* Vuetify */
-  .v-picker--date {
-    background: rgba(241, 61, 125, 0.4) !important;
-    border-radius: 15px !important;
-  }
-  .v-picker__body {
-    background: transparent !important;
-  }
+/* Vuetify */
+.v-picker--date {
+  background: rgba(241, 61, 125, 0.4) !important;
+  border-radius: 15px !important;
+}
+.v-picker__body {
+  background: transparent !important;
+}
 
-  .v-application .cyan--text.text--accent-4 {
-    color: #f13d7d !important;
-  }
+.v-application .cyan--text.text--accent-4 {
+  color: #f13d7d !important;
+}
 
-  .v-text-field--outlined fieldset {
-    color: red !important;
-  }
+.v-text-field--outlined fieldset {
+  color: red !important;
+}
 
-  .theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
-    border-color: #f13d7d !important;
+.theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
+  border-color: #f13d7d !important;
+}
+
+@property --rotate {
+  syntax: '<angle>';
+  initial-value: 132deg;
+  inherits: false;
+}
+
+.button:hover {
+  color: #f13d7d;
+  transition: color 1s;
+}
+.button:hover:before,
+.button:hover:after {
+  animation: none;
+  opacity: 0;
+}
+
+.button::before {
+  content: '';
+  width: 100%;
+  height: 8%;
+  border-radius: 8px;
+  background-image: linear-gradient(
+    var(--rotate),
+    #da12cc,
+    #f13d7d 43%,
+    #eed11d
+  );
+  position: absolute;
+  bottom: 0;
+  animation: spin 2.5s linear infinite;
+}
+
+.button::after {
+  position: absolute;
+  content: '';
+  left: 0;
+  right: 0;
+  height: 100%;
+  width: 100%;
+  transform: scale(0.8);
+  filter: blur(calc(250px / 6));
+  background-image: linear-gradient(
+    var(--rotate),
+    #da12cc,
+    #f13d7d 43%,
+    #eed11d
+  );
+  transition: opacity 0.5s;
+  animation: spin 2.5s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    --rotate: 0deg;
   }
+  100% {
+    --rotate: 360deg;
+  }
+}
 </style>
