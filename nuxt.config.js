@@ -25,15 +25,16 @@ export default {
   css: ['@/assets/css/main.css'],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [],
+  plugins: [
+    '~/plugins/vee-validate',
+    { src: '~/plugins/vue-toastify', mode: 'client' },
+  ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
-    // https://go.nuxtjs.dev/eslint
-    '@nuxtjs/eslint-module',
     // https://go.nuxtjs.dev/tailwindcss
     '@nuxtjs/tailwindcss',
     '@nuxtjs/composition-api/module',
@@ -43,7 +44,9 @@ export default {
   modules: ['@nuxtjs/vuetify', '@nuxtjs/axios'],
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
-  build: {},
+  build: {
+    transpile: ['vee-validate/dist/rules'],
+  },
 
   vuetify: {
     defaultAssets: false,
@@ -53,6 +56,12 @@ export default {
     treeShake: true,
     theme: {
       dark: true,
+      themes: {
+        dark: {
+          primary: '#FFFFFF',
+          success: '#286387',
+        },
+      },
     },
   },
 }
