@@ -8,8 +8,8 @@
 
 <style>
   .layout-default {
-    background-image: url('../assets/images/backgroundImage.svg'),
-      url('../assets/images/backgroundImage.svg');
+    background-image: url('~/assets/images/backgroundImage.svg'),
+      url('~/assets/images/backgroundImage.svg');
     background-position: 0% 0%, 100% 100%;
   }
 </style>
