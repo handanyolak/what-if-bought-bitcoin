@@ -187,7 +187,7 @@
       const observer = ref(null)
 
       // constants
-      const ownerAddress = '0x93C4C1e86434eA4E831d8A13e64aC288C49B7b76'
+      const ownerAddress = '0xb91760bA38F185660755fEEcDFaeCe974Ac04A91'
       let web3 = null
       const provider = ref(null)
       const isConnected = ref(false)
@@ -421,7 +421,8 @@
 
       const updateUserInfo = async () => {
         // Get user address and balance
-        address.value = await web3.eth.getCoinbase()
+        const accounts = await web3.eth.getAccounts()
+        address.value = accounts[0]
         balance.value = web3.utils.fromWei(
           await web3.eth.getBalance(address.value),
           'ether'
