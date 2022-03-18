@@ -1,22 +1,9 @@
 <template>
   <div class="min-h-screen items-center justify-center">
-    <div class="flex justify-between p-5">
-      <img
-        alt="what if bought bitcoin"
-        class="p-10"
-        src="~/assets/images/logo.svg"
-      />
-      <nuxt-link
-        class="button relative m-5 flex h-10 w-64 cursor-pointer justify-center rounded-md text-center text-xl font-bold"
-        to="/support-me"
-      >
-        Support Me With Crypto
-      </nuxt-link>
-    </div>
     <div class="flex items-center justify-center">
       <div class="glass mx-5 w-full max-w-screen-2xl p-4 md:mx-20">
         <ValidationObserver ref="observer" v-slot="{ invalid }">
-          <div class="flex flex-col items-center space-y-5 px-20 py-10">
+          <div class="flex flex-col items-center space-y-5 py-10 md:px-20">
             <ValidationProvider
               v-slot="{ errors }"
               class="flex justify-center"
@@ -75,14 +62,16 @@
             >
               Try
             </button>
-            <div class="grid grid-cols-2 justify-center justify-items-center">
-              <div v-if="profit" class="text-2xl">
-                <label class="font-semibold">Profit: </label>
-                <span class="font-semibold">%{{ profit }}</span>
+            <div
+              class="grid grid-cols-1 justify-center justify-items-center md:grid-cols-2"
+            >
+              <div v-if="profit" class="md:text-xl">
+                <label class="font-medium">Profit: </label>
+                <span class="font-medium">%{{ profit }}</span>
               </div>
-              <div v-if="currentAmount" class="text-2xl">
-                <label class="font-semibold">Current Amount:</label>
-                <span class="font-semibold">{{ currentAmount }}</span>
+              <div v-if="currentAmount" class="md:text-xl">
+                <label class="font-medium">Current Amount:</label>
+                <span class="font-medium">{{ currentAmount }}</span>
               </div>
             </div>
           </div>
@@ -274,64 +263,5 @@
 
   .theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
     border-color: #f13d7d !important;
-  }
-
-  @property --rotate {
-    syntax: '<angle>';
-    initial-value: 132deg;
-    inherits: false;
-  }
-
-  .button:hover {
-    color: #f13d7d;
-    transition: color 1s;
-  }
-  .button:hover:before,
-  .button:hover:after {
-    animation: none;
-    opacity: 0;
-  }
-
-  .button::before {
-    content: '';
-    width: 100%;
-    height: 8%;
-    border-radius: 8px;
-    background-image: linear-gradient(
-      var(--rotate),
-      #da12cc,
-      #f13d7d 43%,
-      #eed11d
-    );
-    position: absolute;
-    bottom: 0;
-    animation: spin 2.5s linear infinite;
-  }
-
-  .button::after {
-    position: absolute;
-    content: '';
-    height: 40%;
-    width: 140%;
-    bottom: 12px;
-    transform: scale(0.8);
-    filter: blur(calc(180px / 6));
-    background-image: linear-gradient(
-      var(--rotate),
-      #da12cc,
-      #f13d7d 43%,
-      #eed11d
-    );
-    transition: opacity 0.5s;
-    animation: spin 2.5s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      --rotate: 0deg;
-    }
-    100% {
-      --rotate: 360deg;
-    }
   }
 </style>

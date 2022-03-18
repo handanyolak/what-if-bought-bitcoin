@@ -26,6 +26,7 @@
   "typescript.validate.enable": false,
   "typescript.surveys.enabled": false,
   "css.validate": false,
+  "css.lint.emptyRules": "ignore",
   "less.validate": false,
   "scss.validate": false,
   "[dotenv]": {

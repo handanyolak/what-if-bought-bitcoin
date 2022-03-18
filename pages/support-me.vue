@@ -1,20 +1,7 @@
 <template>
   <div class="min-h-screen items-center justify-center">
-    <div class="flex justify-between p-5">
-      <img
-        alt="what if bought bitcoin"
-        class="p-10"
-        src="~/assets/images/logo.svg"
-      />
-      <nuxt-link
-        class="button relative m-5 flex h-10 w-64 cursor-pointer justify-center rounded-md text-center text-xl font-bold"
-        to="/support-me"
-      >
-        Support Me With Crypto
-      </nuxt-link>
-    </div>
     <div class="flex items-center justify-center">
-      <div class="glass mx-5 w-full max-w-screen-2xl p-4 md:mx-20">
+      <div class="glass mt-24 w-full max-w-4xl p-4 md:mx-20">
         <div v-if="provider">
           <div v-if="Boolean(isConnected)">
             <v-row
@@ -31,7 +18,7 @@
                   <span
                     v-ripple="{ center: true }"
                     v-bind="attrs"
-                    class="app-title border-gradient-br-blue-green-gray-900 my-auto cursor-pointer rounded-md border-2 border-solid border-transparent p-3 text-center text-gray-100 shadow-xl"
+                    class="app-title border-gradient-br-pink-yellow-gray-900 my-auto cursor-pointer rounded-md border-2 border-solid border-transparent p-3 text-center text-gray-100 shadow-xl"
                     v-on="on"
                     @click="copyText(address)"
                   >
@@ -44,7 +31,7 @@
                 </span>
               </v-tooltip>
               <span
-                class="app-title border-gradient-br-blue-green-gray-900 my-auto rounded-md border-2 border-solid border-transparent p-3 text-center text-gray-100"
+                class="app-title border-gradient-br-pink-yellow-gray-900 my-auto rounded-md border-2 border-solid border-transparent p-3 text-center text-gray-100 shadow-xl"
               >
                 Balance: {{ formatBalanceToDisplay(balance) }}
               </span>
@@ -66,40 +53,31 @@
                 >
                   <v-text-field
                     v-model="amount"
-                    class="mx-4 mt-4 max-w-sm"
+                    class="mx-4 max-w-sm"
                     :counter="8"
-                    dense
                     :error-messages="errors"
                     :hint="!Boolean(amount) ? 'For example, `0.01`' : ''"
                     label="Amount"
                     name="amount"
-                    outlined
-                    placeholder="Your amount"
                     :prepend-inner-icon="mdiCurrencyUsdOff"
-                    rounded
-                    shaped
                     :success="
                       !Boolean(Object.keys(errors).length) && Boolean(amount)
                     "
                   ></v-text-field>
                 </ValidationProvider>
               </v-row>
-              <v-row
-                align="center"
-                :class="`${
-                  !$vuetify.breakpoint.smAndDown
-                    ? 'space-x-6'
-                    : 'my-4 grid grid-cols-1 gap-y-2 space-x-0 space-y-1 px-5'
-                }`"
-                justify="center"
-              >
-                <v-btn
-                  :class="`${!$vuetify.breakpoint.smAndDown ? '' : 'w-full'}`"
-                  :disabled="invalid || Boolean(spinner)"
-                  @click="send"
-                  ><svg
+              <v-row align="center" justify="center">
+                <div class="flex flex-col items-center justify-center">
+                  <button
+                    class="connect-button my-5 rounded-xl py-1 px-5 outline-none"
+                    :disabled="invalid || Boolean(spinner)"
+                    @click="send"
+                  >
+                    <span>Send</span>
+                  </button>
+                  <svg
                     v-if="spinner"
-                    class="mr-3 h-5 w-5 animate-spin text-white"
+                    class="mr-3 h-4 w-4 animate-spin text-white"
                     viewBox="0 0 24 24"
                   >
                     <circle
@@ -116,17 +94,16 @@
                       fill="currentColor"
                     />
                   </svg>
-                  <span>Send</span>
-                </v-btn>
-                <v-btn @click="disconnectWeb3">Disconnect to Metamask</v-btn>
+                </div>
               </v-row>
             </ValidationObserver>
-            <div class="mt-5 text-center text-sm">
+            <div class="mt-8 text-center text-sm">
               Note: All chains are supported. (Including Testnets for testing
               this feature.)
             </div>
             <div
-              class="mt-5 flex flex-col items-center space-y-1 text-center text-sm"
+              v-if="txHash || txStatus || confirmationCount"
+              class="information mt-5 flex flex-col items-center space-y-1 text-center text-sm"
             >
               <div v-if="txHash" class="break-words">
                 Transaction Hash: {{ txHash }}
@@ -137,9 +114,22 @@
                 {{ confirmationCount }}/{{ totalConfirmationCount }}
               </div>
             </div>
+            <div class="flex justify-center">
+              <button
+                class="connect-button mt-12 cursor-pointer rounded-xl px-5 py-1 outline-none"
+                @click="disconnectWeb3"
+              >
+                Disconnect to Metamask
+              </button>
+            </div>
           </div>
           <div v-else class="flex items-center justify-center">
-            <v-btn @click="connectWeb3">Connect to Metamask</v-btn>
+            <button
+              class="connect-button my-10 cursor-pointer rounded-xl py-1 px-5 outline-none"
+              @click="connectWeb3"
+            >
+              Connect to Metamask
+            </button>
           </div>
         </div>
         <div v-else class="flex items-center justify-center">
@@ -160,6 +150,7 @@
     getCurrentInstance,
     onMounted,
     ref,
+    useContext,
     useMeta,
   } from '@nuxtjs/composition-api'
 
@@ -180,6 +171,9 @@
         title: 'Support Me',
       })
 
+      // context
+      const { $config } = useContext()
+
       // root variables
       const $vToastify = getCurrentInstance().proxy.$vToastify
 
@@ -187,18 +181,18 @@
       const observer = ref(null)
 
       // constants
-      const ownerAddress = '0xb91760bA38F185660755fEEcDFaeCe974Ac04A91'
-      let web3 = null
-      const provider = ref(null)
-      const isConnected = ref(false)
-      const address = ref(null)
-      const balance = ref(0)
-      const amount = ref('')
-      const txStatus = ref('')
-      const confirmationCount = ref(0)
+      const ownerAddress = $config.ownerAddress.toLowerCase()
       const totalConfirmationCount = ref(0)
-      const txHash = ref('')
+      const confirmationCount = ref(0)
+      const balance = ref(0)
+      const isConnected = ref(false)
       const spinner = ref(false)
+      const provider = ref(null)
+      const address = ref(null)
+      let web3 = null
+      const txStatus = ref('')
+      const amount = ref('')
+      const txHash = ref('')
 
       // hooks
       onMounted(async () => {
@@ -263,8 +257,8 @@
           // send tx
           await web3.eth
             .sendTransaction({
-              from: address.value.toLowerCase(),
-              to: ownerAddress.toLowerCase(),
+              from: address.value,
+              to: ownerAddress,
               value: web3.utils.toWei(amount.value, 'ether'),
             })
             .on('transactionHash', handleTransactionHash)
@@ -301,6 +295,103 @@
         location.reload()
       }
 
+      const updateUserInfo = async () => {
+        // Get user address and balance
+        address.value = (await web3.eth.getAccounts())[0].toLowerCase()
+        balance.value = web3.utils.fromWei(
+          await web3.eth.getBalance(address.value),
+          'ether'
+        )
+      }
+
+      const startEthEvents = () => {
+        // Start eth events
+        provider.value.on('chainChanged', handleChainChanged)
+        provider.value.on('accountsChanged', handleAccountsChanged)
+        provider.value.on('disconnect', handleDisconnect)
+      }
+
+      const handleTransactionHash = (_txHash) => {
+        // tx created event
+        txHash.value = _txHash
+        txStatus.value = 'Awaiting transaction confirmation.'
+        $vToastify.info(
+          'Transaction Status: Awaiting transaction confirmation.'
+        )
+        spinner.value = true
+        resetInputs()
+      }
+
+      const handleTransactionReceipt = async () => {
+        // tx created successfully event
+        await updateUserInfo()
+        txStatus.value = 'Awaiting block confirmation.'
+        $vToastify.success('Transaction Status: Awaiting block confirmation.')
+        $vToastify.info('Thank You For Your Support!')
+      }
+
+      const handleTransactionConfirmation = (_confirmationCount) => {
+        // tx confirmation event
+        if (
+          _confirmationCount > 0 &&
+          _confirmationCount <= totalConfirmationCount.value
+        ) {
+          confirmationCount.value = _confirmationCount
+          $vToastify.info('Confirmation Status: New block found.')
+        }
+
+        if (_confirmationCount >= totalConfirmationCount.value) {
+          txStatus.value = 'Confirmed.'
+          resetTxDetails()
+          $vToastify.success('Transaction Status: Confirmed.')
+        }
+      }
+
+      const handleTransactionError = () => {
+        // tx error event
+        txStatus.value = 'Failed.'
+        resetTxDetails()
+        $vToastify.error('Transaction Status: Failed.')
+      }
+
+      const resetInputs = () => {
+        // removed fields and reset validate
+        observer.value.reset()
+        amount.value = ''
+      }
+
+      const resetTxDetails = () => {
+        // removed tx details for sustainability
+        txStatus.value = ''
+        txHash.value = ''
+        totalConfirmationCount.value = 0
+        confirmationCount.value = 0
+        spinner.value = false
+      }
+
+      const stopEthEvents = () => {
+        // Start eth events
+        provider.value.removeListener('chainChanged', handleChainChanged)
+        provider.value.removeListener('accountsChanged', handleAccountsChanged)
+      }
+
+      const handleChainChanged = async () => {
+        // eth change chain event
+        await updateUserInfo()
+        $vToastify.success('Chain has changed.')
+      }
+
+      const handleAccountsChanged = async (accounts) => {
+        // eth change account event
+        if (accounts.length > 0) {
+          await updateUserInfo()
+          $vToastify.success(`Linked account changed to '${accounts[0]}'`)
+        } else {
+          $vToastify.warning('Linked account not found. Page will be reloaded.')
+          location.reload()
+        }
+      }
+
       const formatAddressToDisplay = (address) => {
         // address value formatted to user
         return (
@@ -325,133 +416,69 @@
         }
       }
 
-      const handleTransactionError = () => {
-        // tx error event
-        txStatus.value = 'Failed.'
-        resetTxDetails()
-        $vToastify.error('Transaction Status: Failed.')
-      }
-
-      const handleTransactionConfirmation = (_confirmationCount) => {
-        // tx confirmation event
-        if (
-          _confirmationCount > 0 &&
-          _confirmationCount <= totalConfirmationCount.value
-        ) {
-          confirmationCount.value = _confirmationCount
-          $vToastify.info('Confirmation Status: New block found.')
-        }
-
-        if (_confirmationCount >= totalConfirmationCount.value) {
-          txStatus.value = 'Confirmed.'
-          resetTxDetails()
-          $vToastify.success('Transaction Status: Confirmed.')
-        }
-      }
-
-      const resetTxDetails = () => {
-        // removed tx details for sustainability
-        txStatus.value = ''
-        txHash.value = ''
-        totalConfirmationCount.value = 0
-        confirmationCount.value = 0
-        spinner.value = false
-      }
-
-      const handleTransactionReceipt = async () => {
-        // tx created successfully event
-        await updateUserInfo()
-        txStatus.value = 'Awaiting block confirmation.'
-        $vToastify.success('Transaction Status: Awaiting block confirmation.')
-        $vToastify.info('Thank You For Your Support!')
-      }
-
-      const handleTransactionHash = (_txHash) => {
-        // tx created event
-        txHash.value = _txHash
-        txStatus.value = 'Awaiting transaction confirmation.'
-        $vToastify.info(
-          'Transaction Status: Awaiting transaction confirmation.'
-        )
-        spinner.value = true
-        resetInputs()
-      }
-
-      const resetInputs = () => {
-        // removed fields and reset validate
-        observer.value.reset()
-        amount.value = ''
-      }
-
-      const startEthEvents = () => {
-        // Start eth events
-        provider.value.on('chainChanged', handleChainChanged)
-        provider.value.on('accountsChanged', handleAccountsChanged)
-        provider.value.on('disconnect', handleDisconnect)
-      }
-
-      const handleChainChanged = async () => {
-        // eth change chain event
-        await updateUserInfo()
-        $vToastify.success('Chain has changed.')
-      }
-
-      const handleAccountsChanged = async (accounts) => {
-        // eth change account event
-        if (accounts.length > 0) {
-          await updateUserInfo()
-          $vToastify.success(`Linked account changed to '${accounts[0]}'`)
-        } else {
-          $vToastify.warning('Linked account not found. Page will be reloaded.')
-          location.reload()
-        }
-      }
-
       const handleDisconnect = async () => {
         await stopEthEvents()
         // eth disconnect event
         location.reload()
       }
 
-      const stopEthEvents = () => {
-        // Start eth events
-        provider.value.removeListener('chainChanged', handleChainChanged)
-        provider.value.removeListener('accountsChanged', handleAccountsChanged)
-      }
-
-      const updateUserInfo = async () => {
-        // Get user address and balance
-        const accounts = await web3.eth.getAccounts()
-        address.value = accounts[0]
-        balance.value = web3.utils.fromWei(
-          await web3.eth.getBalance(address.value),
-          'ether'
-        )
-      }
-
       // return
       return {
-        provider,
+        totalConfirmationCount,
+        formatAddressToDisplay,
+        formatBalanceToDisplay,
+        mdiCurrencyUsdOff,
+        confirmationCount,
+        disconnectWeb3,
         isConnected,
-        amount,
-        address,
-        balance,
+        connectWeb3,
+        provider,
         observer,
         txStatus,
-        confirmationCount,
-        txHash,
-        totalConfirmationCount,
-        spinner,
         copyText,
-        connectWeb3,
-        disconnectWeb3,
-        formatBalanceToDisplay,
-        formatAddressToDisplay,
+        address,
+        spinner,
+        balance,
+        amount,
+        txHash,
         send,
-        mdiCurrencyUsdOff,
       }
     },
     // head
     head: {},
   })
 </script>
+
+<style>
+  .glass {
+    padding: 10px;
+    border-radius: 20px;
+    color: #fff;
+    font-size: 18px;
+    background: rgba(47, 103, 191, 0.14);
+    box-shadow: 0px 2px 20px 8px rgb(255 255 255 / 10%);
+    border-right: 1px solid rgba(47, 103, 191, 0.14);
+    border-bottom: 1px solid rgba(47, 103, 191, 0.14);
+    backdrop-filter: blur(10px);
+    transition: 0.5s ease;
+  }
+  .connect-button {
+    transition: 0.3s ease;
+    border: 2px solid #f13d7d;
+  }
+
+  .connect-button:hover {
+    box-shadow: 0px 0px 8px 0px rgb(241 61 125 / 88%);
+  }
+
+  .connect-button:disabled {
+    cursor: not-allowed;
+    pointer-events: all !important;
+  }
+
+  .information {
+    box-shadow: 0px 0px 35px -15px rgb(28 50 60 / 34%);
+    padding: 20px;
+    border-radius: 20px;
+  }
+</style>

@@ -6,6 +6,11 @@ export default {
 
   telemetry: false,
 
+  // use runtime config instead of env https://nuxtjs.org/docs/directory-structure/nuxt-config/#publicruntimeconfig
+  publicRuntimeConfig: {
+    ownerAddress: process.env.OWNER_ADDRESS,
+  },
+
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
     title: 'whatIf',

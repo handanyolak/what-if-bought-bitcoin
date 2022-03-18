@@ -1,4 +1,4 @@
-.border-gradient-br-blue-green-gray-900 {
+.border-gradient-br-pink-yellow-gray-900 {
   background: linear-gradient(to right, #18181b, #18181b),
     linear-gradient(to bottom right, #da12cc, #eed11d);
   background-clip: padding-box, border-box;
@@ -6,7 +6,7 @@
 }
 
 /* stylelint-disable-next-line selector-class-pattern */
-.hover\:border-gradient-tl-blue-green-gray-900:hover {
+.hover\:border-gradient-tl-pink-yellow-gray-900:hover {
   background: linear-gradient(to right, #18181b, #18181b),
     linear-gradient(to top left, #da12cc, #eed11d);
   background-clip: padding-box, border-box;

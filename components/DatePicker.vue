@@ -1,10 +1,11 @@
 <template>
   <v-date-picker
     v-model="startTime"
-    class="rounded-xl border-none"
+    class="border-none"
     full-width
     :max="maxDate"
     :min="minDate"
+    show-adjacent-months
     @change="onChange"
   ></v-date-picker>
 </template>
