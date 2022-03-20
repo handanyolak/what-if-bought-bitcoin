@@ -1,12 +1,14 @@
 <template>
   <div class="min-h-screen items-center justify-center">
     <div class="flex items-center justify-center">
-      <div class="glass mt-24 w-full max-w-4xl p-4 md:mx-20">
+      <div
+        class="glass mx-8 mt-24 w-full max-w-4xl rounded-2xl px-2 py-14 md:mx-20 md:p-12"
+      >
         <div v-if="provider">
           <div v-if="Boolean(isConnected)">
             <v-row
               align="center"
-              :class="`my-5 ${
+              :class="`${
                 !$vuetify.breakpoint.smAndDown
                   ? 'space-x-6'
                   : 'mx-2 grid grid-cols-1 gap-y-5 space-x-0'
@@ -37,7 +39,7 @@
               </span>
             </v-row>
             <ValidationObserver ref="observer" v-slot="{ invalid }">
-              <v-row>
+              <v-row class="mt-10 flex justify-center">
                 <ValidationProvider
                   v-slot="{ errors }"
                   class="flex justify-center"
@@ -103,7 +105,7 @@
             </div>
             <div
               v-if="txHash || txStatus || confirmationCount"
-              class="information mt-5 flex flex-col items-center space-y-1 text-center text-sm"
+              class="information mt-5 flex flex-col items-center space-y-1 rounded-2xl p-5 text-center text-sm"
             >
               <div v-if="txHash" class="break-words">
                 Transaction Hash: {{ txHash }}
@@ -116,7 +118,7 @@
             </div>
             <div class="flex justify-center">
               <button
-                class="connect-button mt-12 cursor-pointer rounded-xl px-5 py-1 outline-none"
+                class="connect-button mt-12 cursor-pointer rounded-xl px-3 py-1 outline-none md:px-5"
                 @click="disconnectWeb3"
               >
                 Disconnect to Metamask
@@ -133,12 +135,13 @@
           </div>
         </div>
         <div v-else class="flex items-center justify-center">
-          <v-btn
-            href="https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn"
+          <a
+            class="connect-button my-10 cursor-pointer rounded-xl py-1 px-5 text-white outline-none"
+            href="https://metamask.io/download/"
             target="_blank"
           >
             Install Metamask
-          </v-btn>
+          </a>
         </div>
       </div>
     </div>
@@ -199,7 +202,12 @@
         await checkProvider()
 
         if (provider.value) {
+          // create web3 instance
           web3 = new Web3(provider.value)
+
+          // set total confirmation count
+          web3.eth.transactionConfirmationBlocks = 5
+          totalConfirmationCount.value = web3.eth.transactionConfirmationBlocks
         }
       })
 
@@ -214,14 +222,12 @@
       }
 
       const connectWeb3 = async () => {
-        // if No web3 provider
-        if (!provider.value) {
-          $vToastify.error('No web3 provider detected.')
-
-          return
-        }
-
         try {
+          // if No web3 provider
+          if (!provider.value) {
+            throw new Error('No web3 provider detected.')
+          }
+
           // Ask to connect
           await web3.eth.requestAccounts()
 
@@ -229,10 +235,15 @@
           await updateUserInfo()
 
           // Check connecting
-          isConnected.value = await web3.eth.net.isListening()
+          isConnected.value =
+            (await web3.eth.net.isListening()) || provider.value.isConnected()
+
+          if (!isConnected.value) {
+            throw new Error('Connect Error.')
+          }
 
           // started eth events
-          startEthEvents()
+          await startEthEvents()
 
           $vToastify.success('Connected.')
         } catch (error) {
@@ -250,10 +261,6 @@
             throw new Error('Validation Error.')
           }
 
-          // set total confirmation count
-          web3.eth.transactionConfirmationBlocks = 5
-          totalConfirmationCount.value = web3.eth.transactionConfirmationBlocks
-
           // send tx
           await web3.eth
             .sendTransaction({
@@ -261,8 +268,10 @@
               to: ownerAddress,
               value: web3.utils.toWei(amount.value, 'ether'),
             })
-            .on('transactionHash', handleTransactionHash)
-            .on('receipt', handleTransactionReceipt)
+            .once('sent', handleTransactionSent)
+            .once('sending', handleTransactionSending)
+            .once('transactionHash', handleTransactionHash)
+            .once('receipt', handleTransactionReceipt)
             .on('confirmation', handleTransactionConfirmation)
             .on('error', handleTransactionError)
         } catch (error) {
@@ -272,32 +281,24 @@
         }
       }
 
-      const disconnectWeb3 = () => {
+      const disconnectWeb3 = async () => {
         $vToastify.success('Disconnected.')
 
-        // Disconnect
-        isConnected.value = false
-
-        // reset user info
-        address.value = null
-        balance.value = null
-
-        // inputs
-        resetInputs()
-
-        // reset tx details
-        resetTxDetails()
-
         // reset events
-        stopEthEvents()
+        await stopEthEvents()
 
         // reload to
         location.reload()
       }
 
-      const updateUserInfo = async () => {
+      const updateUserInfo = async (_address = null) => {
         // Get user address and balance
-        address.value = (await web3.eth.getAccounts())[0].toLowerCase()
+        if (!_address) {
+          address.value = (await web3.eth.getAccounts())[0].toLowerCase()
+        } else {
+          address.value = _address.toLowerCase()
+        }
+
         balance.value = web3.utils.fromWei(
           await web3.eth.getBalance(address.value),
           'ether'
@@ -311,22 +312,39 @@
         provider.value.on('disconnect', handleDisconnect)
       }
 
+      const handleTransactionSent = () => {
+        spinner.value = true
+        $vToastify.info('Transaction Status: Transaction sent to Metamask.')
+      }
+
+      const handleTransactionSending = () => {
+        $vToastify.info('Transaction Status: Waiting to user confirm.')
+      }
+
       const handleTransactionHash = (_txHash) => {
         // tx created event
-        txHash.value = _txHash
-        txStatus.value = 'Awaiting transaction confirmation.'
         $vToastify.info(
           'Transaction Status: Awaiting transaction confirmation.'
         )
-        spinner.value = true
+
+        txHash.value = _txHash
+        txStatus.value = 'Awaiting transaction confirmation.'
+
+        // reset inputs
         resetInputs()
       }
 
       const handleTransactionReceipt = async () => {
         // tx created successfully event
-        await updateUserInfo()
-        txStatus.value = 'Awaiting block confirmation.'
         $vToastify.success('Transaction Status: Awaiting block confirmation.')
+
+        // to update user balance
+        await updateUserInfo()
+
+        // preparing confirmation count
+        confirmationCount.value = '0'
+        txStatus.value = 'Awaiting block confirmation.'
+
         $vToastify.info('Thank You For Your Support!')
       }
 
@@ -383,13 +401,21 @@
 
       const handleAccountsChanged = async (accounts) => {
         // eth change account event
+        const _address = accounts[0]
+
         if (accounts.length > 0) {
-          await updateUserInfo()
-          $vToastify.success(`Linked account changed to '${accounts[0]}'`)
+          await updateUserInfo(_address)
+          $vToastify.success(`Linked account changed to '${_address}'`)
         } else {
           $vToastify.warning('Linked account not found. Page will be reloaded.')
           location.reload()
         }
+      }
+
+      const handleDisconnect = async () => {
+        await stopEthEvents()
+        // eth disconnect event
+        location.reload()
       }
 
       const formatAddressToDisplay = (address) => {
@@ -414,12 +440,6 @@
           // suppressed error
           return null
         }
-      }
-
-      const handleDisconnect = async () => {
-        await stopEthEvents()
-        // eth disconnect event
-        location.reload()
       }
 
       // return
@@ -451,16 +471,11 @@
 
 <style>
   .glass {
-    padding: 10px;
-    border-radius: 20px;
-    color: #fff;
-    font-size: 18px;
     background: rgba(47, 103, 191, 0.14);
     box-shadow: 0px 2px 20px 8px rgb(255 255 255 / 10%);
     border-right: 1px solid rgba(47, 103, 191, 0.14);
     border-bottom: 1px solid rgba(47, 103, 191, 0.14);
     backdrop-filter: blur(10px);
-    transition: 0.5s ease;
   }
   .connect-button {
     transition: 0.3s ease;
@@ -478,7 +493,5 @@
 
   .information {
     box-shadow: 0px 0px 35px -15px rgb(28 50 60 / 34%);
-    padding: 20px;
-    border-radius: 20px;
   }
 </style>
