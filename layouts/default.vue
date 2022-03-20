@@ -12,7 +12,7 @@
         <div>
           <div v-if="route.name !== 'support-me'" class="flex justify-center">
             <nuxt-link
-              class="button relative m-5 flex h-10 w-64 cursor-pointer justify-center rounded-md text-center text-xl font-bold"
+              class="button relative m-5 flex h-10 w-64 cursor-pointer justify-center rounded-md text-center text-xl font-bold text-white transition-colors duration-700 before:absolute before:bottom-[6px] before:h-[2px] before:w-full before:rounded-lg after:absolute after:bottom-3 after:h-2/5 hover:text-dark-pink"
               to="/support-me"
             >
               Support Me With Crypto
@@ -43,10 +43,6 @@
     inherits: false;
   }
 
-  .button:hover {
-    color: #f13d7d;
-    transition: color 1s;
-  }
   .button:hover:before,
   .button:hover:after {
     animation: none;
@@ -54,27 +50,18 @@
   }
 
   .button::before {
-    content: '';
-    width: 100%;
-    height: 8%;
-    border-radius: 8px;
     background-image: linear-gradient(
       var(--rotate),
       #da12cc,
       #f13d7d 43%,
       #eed11d
     );
-    position: absolute;
-    bottom: 0;
+
     animation: spin 2.5s linear infinite;
   }
 
   .button::after {
-    position: absolute;
-    content: '';
-    height: 40%;
     width: 140%;
-    bottom: 12px;
     transform: scale(0.8);
     filter: blur(calc(180px / 6));
     background-image: linear-gradient(
