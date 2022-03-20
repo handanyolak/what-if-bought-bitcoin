@@ -1,5 +1,6 @@
 {
-  "name": "whatifboughtbitcoin",
+  "license": "MIT",
+  "name": "what-if-bought-bitcoin",
   "version": "1.0.0",
   "private": false,
   "scripts": {
