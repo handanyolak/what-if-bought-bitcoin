@@ -16,3 +16,7 @@
 .gradient-border-3 {
   border: 3px solid transparent;
 }
+
+* {
+  font-family: 'Baloo Bhai 2', cursive;
+}
