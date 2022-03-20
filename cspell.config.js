@@ -13,6 +13,7 @@ module.exports = {
     'tailwindcss',
     // projects
     'BTCUSDT',
+    'whatifboughtbitcoin',
   ],
   flagWords: [],
   ignoreWords: [],

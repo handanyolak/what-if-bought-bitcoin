@@ -1,7 +1,7 @@
 {
-  "name": "whatIf",
+  "name": "whatifboughtbitcoin",
   "version": "1.0.0",
-  "private": true,
+  "private": false,
   "scripts": {
     "prepare": "husky install; rm -rf .husky/pre-push; husky add .husky/pre-push 'yarn run hook:pre-push'; rm -rf .husky/_/.gitignore",
     "dev": "nuxt",
