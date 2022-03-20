@@ -34,6 +34,10 @@ export default {
 
   // router: https://nuxtjs.org/docs/configuration-glossary/configuration-router/
   router: {
+    base:
+      process.env.NODE_ENV === 'production'
+        ? '/' + process.env.PROJECT_NAME + '/'
+        : '/',
     trailingSlash: false,
   },
 
