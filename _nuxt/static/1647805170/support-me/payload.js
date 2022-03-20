@@ -1,0 +1,1 @@
+__NUXT_JSONP__("/support-me", {data:[{}],fetch:{},mutations:void 0});
