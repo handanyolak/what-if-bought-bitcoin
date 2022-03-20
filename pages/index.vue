@@ -1,9 +1,9 @@
 <template>
   <div class="min-h-screen items-center justify-center">
     <div class="flex items-center justify-center">
-      <div class="glass mx-5 w-full max-w-screen-2xl p-4 md:mx-20">
+      <div class="glass mx-5 w-full max-w-screen-2xl rounded-2xl p-5 md:mx-20">
         <ValidationObserver ref="observer" v-slot="{ invalid }">
-          <div class="flex flex-col items-center space-y-5 py-10 md:px-20">
+          <div class="flex flex-col items-center space-y-5 py-10 lg:px-20">
             <ValidationProvider
               v-slot="{ errors }"
               class="flex justify-center"
@@ -56,22 +56,60 @@
               name="inflation"
             ></v-checkbox>
             <button
-              class="try-button mt-10 cursor-pointer rounded-xl py-1 px-28 outline-none"
+              class="try-button mt-10 rounded-xl border-[#f13d7d] py-1 px-28 outline-none"
               :disabled="invalid"
               @click="onSubmit"
             >
               Try
             </button>
             <div
-              class="grid grid-cols-1 justify-center justify-items-center md:grid-cols-2"
+              class="grid grid-cols-1 justify-center gap-x-10 gap-y-5 md:grid-cols-2"
             >
-              <div v-if="profit" class="md:text-xl">
-                <label class="font-medium">Profit: </label>
-                <span class="font-medium">%{{ profit }}</span>
+              <div
+                v-if="oldPrice"
+                class="rounded-xl p-5 text-center text-sm shadow-2xl md:text-xl"
+              >
+                <label class="font-medium">Old Price: </label>
+                <span class="font-medium">{{
+                  parseFloat(oldPrice).toFixed(2)
+                }}</span>
               </div>
-              <div v-if="currentAmount" class="md:text-xl">
+
+              <div
+                v-if="currentPrice"
+                class="rounded-xl p-5 text-center text-sm shadow-2xl md:text-xl"
+              >
+                <label class="font-medium">Current Price:</label>
+                <span class="font-medium">{{
+                  parseFloat(currentPrice).toFixed(2)
+                }}</span>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 justify-center gap-x-10 gap-y-5">
+              <div
+                v-if="inflationRate"
+                class="rounded-xl p-5 text-center text-sm shadow-2xl md:text-xl"
+              >
+                <label class="font-medium">Inflation Rate: </label>
+                <span class="font-medium">{{ inflationRate.toFixed(2) }}</span>
+              </div>
+            </div>
+            <div
+              class="grid grid-cols-1 justify-center gap-x-10 gap-y-5 md:grid-cols-2"
+            >
+              <div
+                v-if="profit"
+                class="rounded-xl p-5 text-center text-sm shadow-2xl md:text-xl"
+              >
+                <label class="font-medium">Profit: </label>
+                <span class="font-medium">%{{ parseInt(profit) }}</span>
+              </div>
+              <div
+                v-if="currentAmount"
+                class="rounded-xl p-5 text-center text-sm shadow-2xl md:text-xl"
+              >
                 <label class="font-medium">Current Amount:</label>
-                <span class="font-medium">{{ currentAmount }}</span>
+                <span class="font-medium">{{ currentAmount.toFixed(2) }}</span>
               </div>
             </div>
           </div>
@@ -82,14 +120,20 @@
 </template>
 
 <script setup>
-  import { getCurrentInstance, ref, useContext } from '@nuxtjs/composition-api'
+  import {
+    getCurrentInstance,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+    useContext,
+  } from '@nuxtjs/composition-api'
   import { ValidationObserver, ValidationProvider } from 'vee-validate'
   import { mdiCurrencyUsd } from '@mdi/js'
 
   import DatePicker from '~/components/DatePicker.vue'
 
   // context
-  const { $axios } = useContext()
+  const { $axios, $recaptcha } = useContext()
 
   // root variables
   const $vToastify = getCurrentInstance().proxy.$vToastify
@@ -107,27 +151,49 @@
   const oldPrice = ref(null)
   const currentPrice = ref(null)
   const inflation = ref(false)
-  const inflationRate = ref(1)
+  const inflationRate = ref(null)
   const amount = ref('')
   const currentAmount = ref('')
   const profit = ref(null)
+  const profitRate = ref(null)
+
+  // hooks
+  onMounted(async () => {
+    await $recaptcha.init()
+  })
+
+  onBeforeUnmount(() => {
+    $recaptcha.destroy()
+  })
 
   // methods
   const onSubmit = async () => {
     try {
-      // validate
+      // recaptcha validation
+      await $recaptcha.execute('login')
+
+      // vee-validate
       const validate = await observer.value.validate()
 
       if (!validate) {
         throw new Error('Validation Error.')
       }
 
+      if (startTime.value === null) {
+        throw new Error('Please Select a Date')
+      }
+
       await getOldPrice()
       await getCurrentPrice()
+
       if (inflation.value) {
         await calculateInflation()
+      } else {
+        inflationRate.value = null
       }
+
       await calculateProfit()
+      $vToastify.success('Success')
     } catch (error) {
       if (error) {
         $vToastify.error(String(error?.message))
@@ -145,15 +211,8 @@
         },
       })
       .then((data) => {
-        // TODO: order by timestamp
         // m = is buyer? M = is best price? and get first item's price
-        oldPrice.value = data.filter(
-          (item) => item.m === true && item.M === true
-        )[0].p
-      })
-      .catch((error) => {
-        return error
-        /* console.log(error) */
+        oldPrice.value = data.filter((item) => item.m === true)[0].p
       })
   }
 
@@ -167,10 +226,6 @@
       .then((data) => {
         // get current price
         currentPrice.value = data.price
-      })
-      .catch((error) => {
-        return error
-        /* console.log(error) */
       })
   }
 
@@ -190,16 +245,15 @@
         inflationRate.value =
           100 / +data.substring(0, data.length - 2).substring(2)
       })
-      .catch((error) => {
-        return error
-        /* console.log(error) */
-      })
   }
 
   const calculateProfit = () => {
-    profit.value = (currentPrice.value / oldPrice.value) * 100
+    profitRate.value = currentPrice.value / oldPrice.value
     currentAmount.value =
-      (amount.value * inflationRate.value * profit.value) / 100
+      amount.value *
+      profitRate.value *
+      (inflationRate.value ? inflationRate.value : 1)
+    profit.value = ((currentAmount.value - amount.value) / amount.value) * 100
   }
 
   const getStartTime = (date) => {
@@ -217,16 +271,11 @@
 
 <style>
   .glass {
-    padding: 10px;
-    border-radius: 20px;
-    color: #fff;
-    font-size: 18px;
     background: rgba(47, 103, 191, 0.14);
     box-shadow: 0px 2px 20px 8px rgb(255 255 255 / 10%);
     border-right: 1px solid rgba(47, 103, 191, 0.14);
     border-bottom: 1px solid rgba(47, 103, 191, 0.14);
     backdrop-filter: blur(10px);
-    transition: 0.5s ease;
   }
 
   .try-button {
@@ -253,15 +302,15 @@
     background: transparent !important;
   }
 
-  /* .v-application .cyan--text.text--accent-4 {
-    color: #f13d7d !important;
-  } */
-
   .v-text-field--outlined fieldset {
     color: red !important;
   }
 
   .theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
     border-color: #f13d7d !important;
+  }
+
+  .vt-notification {
+    background-color: #f13d7c54 !important;
   }
 </style>
